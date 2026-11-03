@@ -1,1 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Salon Rina – Book your appointment</title>
+<meta name="description" content="Book your appointment at Salon Rina online, in English or Afrikaans. Pick a service, a day and a time, then confirm on WhatsApp.">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Book at Salon Rina">
+<meta property="og:description" content="Pick a service, a day and a time, then confirm on WhatsApp. Afrikaans and English.">
+<meta property="og:image" content="https://eft267-crypto.github.io/salon/rina/salon.jpg">
+<meta property="og:url" content="https://eft267-crypto.github.io/salon/rina/">
+<meta name="twitter:card" content="summary_large_image">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{--bg:#faf7fb;--card:#ffffff;--ink:#2e2233;--muted:#6e5d75;--accent:#7d3c98;--accent-dark:#5b2a70;--gold:#c9a24a;--blush:#f1e6f6;--line:#e2d4e8;--ok:#5b2a70}
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:"Helvetica Neue",Arial,system-ui,sans-serif;font-size:22px;background:var(--bg);color:var(--ink);line-height:1.45;padding:0 0 60px;min-height:100vh}
+  header{background:linear-gradient(180deg,rgba(43,20,55,.35) 0%,rgba(43,20,55,.82) 100%),url('salon.jpg') center 35%/cover no-repeat;color:#fff;padding:90px 18px 30px;text-align:center;box-shadow:0 6px 18px rgba(43,20,55,.3)}
+  header h1{font-family:Georgia,"Times New Roman",serif;font-weight:normal;font-size:40px;letter-spacing:1px}
+  header .sub{font-size:19px;opacity:.9;margin-top:6px;letter-spacing:.5px}
+  .lang{margin-top:16px;display:flex;justify-content:center;gap:10px}
+  .lang button{font-size:20px;padding:10px 20px;border-radius:999px;border:2px solid #fff;background:transparent;color:#fff;cursor:pointer;min-height:52px}
+  .lang button.on{background:var(--gold);border-color:var(--gold);color:#2e2233;font-weight:700}
+  main{max-width:640px;margin:0 auto;padding:18px}
+  h2{font-family:Georgia,"Times New Roman",serif;font-weight:normal;font-size:28px;color:var(--accent-dark);margin:30px 0 12px}
+  .svc{display:block;width:100%;text-align:left;font-size:24px;padding:18px 20px;margin-bottom:12px;border-radius:18px;border:1.5px solid var(--line);background:var(--card);cursor:pointer;min-height:64px;color:var(--ink);box-shadow:0 2px 6px rgba(143,90,77,.06)}
+  .svc.on{border-color:var(--accent);background:var(--blush);font-weight:700;box-shadow:0 4px 12px rgba(185,122,107,.25)}
+  input{width:100%;font-size:24px;padding:16px;border-radius:16px;border:1.5px solid var(--line);background:var(--card);min-height:60px;font-family:inherit;color:var(--ink)}
+  input:focus{outline:none;border-color:var(--accent);box-shadow:0 0 0 3px var(--blush)}
+  label{display:block;font-size:22px;font-weight:700;margin:14px 0 8px;color:var(--ink)}
+  .times{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .t{font-size:24px;padding:16px 0;border-radius:16px;border:1.5px solid var(--line);background:var(--card);cursor:pointer;min-height:60px;font-family:inherit;color:var(--ink)}
+  .t.on{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 4px 10px rgba(185,122,107,.3)}
+  .t:disabled{background:#f1ebe8;color:#a89a95;text-decoration:line-through;cursor:not-allowed}
+  .go{display:block;width:100%;font-size:26px;font-weight:700;padding:20px;border-radius:999px;border:0;background:linear-gradient(135deg,#7d3c98,#c9a24a);color:#fff;cursor:pointer;min-height:70px;margin-top:26px;font-family:inherit;box-shadow:0 8px 18px rgba(91,42,112,.3)}
+  .go:disabled{background:#d9cbc6;box-shadow:none;cursor:not-allowed}
+  .msg{font-size:22px;padding:16px;border-radius:14px;margin-top:18px}
+  .err{background:#fde2e2;color:#7a1414}
+  .done{background:#e0f2e6;color:#14502a}
+  .wa{display:block;text-align:center;margin-top:14px;font-size:24px;padding:18px;border-radius:16px;background:#25D366;color:#fff;text-decoration:none;font-weight:700}
+  .note{font-size:19px;color:var(--muted);margin-top:10px}
+  .hidden{display:none}
+</style>
+</head>
+<body>
 
+<header>
+  <h1 id="title">Salon Rina</h1>
+  <div class="lang">
+    <button id="en" class="on">English</button>
+    <button id="af">Afrikaans</button>
+  </div>
+</header>
+
+<main>
+  <h2 id="t-service">1. Choose what you want</h2>
+  <div id="services"></div>
+
+  <h2 id="t-date">2. Choose a day</h2>
+  <input type="date" id="date">
+
+  <h2 id="t-time">3. Choose a time</h2>
+  <div class="times" id="times"></div>
+  <p class="note" id="t-hint"></p>
+
+  <h2 id="t-you">4. Your details</h2>
+  <label for="name" id="t-name">Your name</label>
+  <input id="name" autocomplete="name">
+  <label for="phone" id="t-phone">Your cellphone number</label>
+  <input id="phone" type="tel" autocomplete="tel">
+
+  <button class="go" id="book" disabled></button>
+  <div id="msg"></div>
+</main>
+
+<script>
+/* ===== SALON SETTINGS ===== */
+const SUPABASE_URL = "https://mkgsjpigeuxeupzvdxko.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rZ3NqcGlnZXV4ZXVwenZkeGtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2NzAwNzAsImV4cCI6MjEwOTI0NjA3MH0.EZbmD-GnZuz_q2lnmg2Nj7dGD36jh7CEIyulhmW03WQ";
+const SALON = "rina";
+const WHATSAPP = "27824942591"; // Rina's WhatsApp number, international format, no +
+const TIMES = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00"];
+const SERVICES = {
+  en: ["Wash","Blow-dry","Wash and blow-dry","Curling","Set and blow-dry","Relaxer","Trim","Other"],
+  af: ["Was","Droogblaas","Was en droogblaas","Krul","Set en droogblaas","Relaksers","Knip","Ander"]
+};
+/* ========================== */
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const T = {
+  en: {title:"Salon Rina", service:"1. Choose what you want", date:"2. Choose a day", time:"3. Choose a time",
+       you:"4. Your details", name:"Your name", phone:"Your cellphone number", book:"Book my appointment",
+       hint:"Grey times are already taken.", pick:"Please choose a service, a day and a time.",
+       ok:"Thank you! Your booking is sent. Tap below to confirm it with Rina on WhatsApp.",
+       wa:"Confirm on WhatsApp", taken:"Sorry, that time was just taken. Please choose another.",
+       err:"Something went wrong. Please try again.", hello:"Hello Rina, I would like to book:",
+       when:"Date", at:"Time", for:"Name", cell:"Cellphone", x:"Service"},
+  af: {title:"Salon Rina", service:"1. Kies wat jy wil hê", date:"2. Kies 'n dag", time:"3. Kies 'n tyd",
+       you:"4. Jou besonderhede", name:"Jou naam", phone:"Jou selfoonnommer", book:"Bespreek my afspraak",
+       hint:"Grys tye is reeds geneem.", pick:"Kies asseblief 'n diens, 'n dag en 'n tyd.",
+       ok:"Dankie! Jou bespreking is gestuur. Tik hieronder om dit by Rina op WhatsApp te bevestig.",
+       wa:"Bevestig op WhatsApp", taken:"Jammer, daardie tyd is pas geneem. Kies asseblief 'n ander een.",
+       err:"Iets het verkeerd gegaan. Probeer asseblief weer.", hello:"Hallo Rina, ek wil graag bespreek:",
+       when:"Datum", at:"Tyd", for:"Naam", cell:"Selfoon", x:"Diens"}
+};
+let lang = "en", svc = null, time = null, taken = [];
+const $ = id => document.getElementById(id);
+
+const ICON_ATTR = 'width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"';
+const ICONS = [
+  // Wash: water drops
+  `<svg ${ICON_ATTR}><path d="M12 3s-6 7-6 11a6 6 0 0 0 12 0c0-4-6-11-6-11z"/></svg>`,
+  // Blow-dry: hair dryer
+  `<svg ${ICON_ATTR}><path d="M4 9h11a4 4 0 0 1 4 4v1H4z"/><path d="M19 9V6h2v3"/><path d="M8 14v5h3v-5"/><path d="M4 9V7"/></svg>`,
+  // Wash and blow-dry: drops and dryer
+  `<svg ${ICON_ATTR}><path d="M6 4s-3 3.5-3 6a3 3 0 0 0 6 0c0-2.5-3-6-3-6z"/><path d="M12 9h7a3 3 0 0 1 3 3v1H12z"/><path d="M22 12v-1"/><path d="M15 13v4h2v-4"/></svg>`,
+  // Curling: curling iron
+  `<svg ${ICON_ATTR}><path d="M14 3l3 3-7 7-3-3z"/><path d="M10 14l-4 4"/><path d="M6 18a2 2 0 1 0 2 2"/></svg>`,
+  // Set and blow-dry: rollers
+  `<svg ${ICON_ATTR}><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1"/></svg>`,
+  // Relaxer: bottle
+  `<svg ${ICON_ATTR}><path d="M10 3h4v3h-4z"/><path d="M9 6h6v3l2 3v8a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1v-8l2-3z"/></svg>`,
+  // Trim: scissors
+  `<svg ${ICON_ATTR}><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4L8.1 15.9M14.5 14.5L20 20M8.1 8.1L12 12"/></svg>`,
+  // Other: smiling face
+  `<svg ${ICON_ATTR}><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4 4 0 0 0 7 0"/><circle cx="9" cy="10" r="0.6" fill="currentColor"/><circle cx="15" cy="10" r="0.6" fill="currentColor"/></svg>`
+];
+const SMILE = `<svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4 4 0 0 0 7 0"/><circle cx="9" cy="10" r="0.6" fill="currentColor"/><circle cx="15" cy="10" r="0.6" fill="currentColor"/></svg>`;
+
+function setLang(l){
+  lang = l;
+  $("en").classList.toggle("on", l==="en"); $("af").classList.toggle("on", l==="af");
+  const t = T[l];
+  $("title").textContent = t.title;
+  $("t-service").textContent = t.service; $("t-date").textContent = t.date;
+  $("t-time").textContent = t.time; $("t-you").textContent = t.you;
+  $("t-name").textContent = t.name; $("t-phone").textContent = t.phone;
+  $("t-hint").textContent = t.hint; $("book").textContent = t.book;
+  drawServices();
+}
+
+function drawServices(){
+  $("services").innerHTML = "";
+  SERVICES[lang].forEach((s,i) => {
+    const b = document.createElement("button");
+    b.className = "svc" + (svc===i ? " on" : "");
+    b.innerHTML = `<span style="display:flex;align-items:center;gap:14px">${ICONS[i]}<span>${s}</span></span>`;
+    b.onclick = () => { svc = i; drawServices(); check(); };
+    $("services").appendChild(b);
+  });
+}
+
+async function loadTimes(){
+  time = null;
+  const date = $("date").value;
+  $("times").innerHTML = "";
+  if(!date){ check(); return; }
+  const { data, error } = await sb.rpc("taken_times", { p_salon: SALON, p_date: date });
+  taken = error ? [] : (data || []).map(r => r.booking_time.slice(0,5));
+  const now = new Date();
+  const isToday = date === now.toISOString().slice(0,10);
+  TIMES.forEach(t => {
+    const b = document.createElement("button");
+    b.className = "t" + (time===t ? " on" : "");
+    b.textContent = t;
+    const past = isToday && (new Date(date+"T"+t+":00").getTime() < now.getTime());
+    b.disabled = taken.includes(t) || past;
+    b.onclick = () => { time = t; loadTimes(); check(); };
+    $("times").appendChild(b);
+  });
+  check();
+}
+
+function check(){
+  $("book").disabled = !(svc!==null && $("date").value && time);
+}
+
+$("date").min = new Date().toISOString().slice(0,10);
+$("date").onchange = loadTimes;
+$("en").onclick = () => setLang("en");
+$("af").onclick = () => setLang("af");
+
+$("book").onclick = async () => {
+  const name = $("name").value.trim(), phone = $("phone").value.trim();
+  const t = T[lang];
+  if(svc===null || !$("date").value || !time){ show(t.pick, "err"); return; }
+  $("book").disabled = true;
+  const service = SERVICES[lang][svc];
+  const { data, error } = await sb.rpc("make_booking", {
+    p_salon: SALON, p_date: $("date").value, p_time: time,
+    p_service: service, p_name: name, p_phone: phone
+  });
+  if(error){
+    show(error.message.includes("SLOT_TAKEN") ? t.taken : t.err, "err");
+    loadTimes(); return;
+  }
+  const msg = `${t.hello}\n• ${t.x}: ${service}\n• ${t.when}: ${$("date").value}\n• ${t.at}: ${time}\n• ${t.for}: ${name}\n• ${t.cell}: ${phone}`;
+  show(t.ok, "done");
+  const a = document.createElement("a");
+  a.className = "wa"; a.textContent = t.wa;
+  a.href = "https://wa.me/" + WHATSAPP + "?text=" + encodeURIComponent(msg);
+  $("msg").appendChild(a);
+  loadTimes();
+};
+
+function show(text, kind){
+  $("msg").innerHTML = "";
+  const d = document.createElement("div");
+  d.className = "msg " + kind; d.textContent = text;
+  $("msg").appendChild(d);
+}
+
+setLang("en");
+</script>
+</body>
+</html>
