@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Salon Rina – Diary</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{font-family:system-ui,Arial,sans-serif;font-size:18px;background:#fff7f5;color:#2b1d1a;line-height:1.4;padding-bottom:40px}
+  header{background:#9c3d57;color:#fff;padding:16px;text-align:center}
+  header h1{font-size:24px}
+  main{max-width:640px;margin:0 auto;padding:16px}
+  .card{background:#fff;border:1px solid #e3d0cb;border-radius:14px;padding:14px;margin-bottom:12px}
+  input,select{width:100%;font-size:18px;padding:12px;border-radius:10px;border:1.5px solid #d9c3bd;background:#fff;font-family:inherit;min-height:48px;margin-top:6px}
+  label{font-weight:700;display:block;margin-top:10px}
+  button{font-size:17px;padding:12px 14px;border-radius:12px;border:0;background:#9c3d57;color:#fff;cursor:pointer;min-height:48px;font-family:inherit;font-weight:700}
+  button.ghost{background:#fff;color:#9c3d57;border:1.5px solid #9c3d57}
+  button.grey{background:#6b6b6b}
+  .row{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .b-name{font-size:20px;font-weight:700}
+  .b-meta{color:#5d4a45;margin-top:4px}
+  .b-status{display:inline-block;margin-top:6px;font-size:14px;padding:3px 9px;border-radius:999px;background:#eee}
+  .cancelled{opacity:.5}
+  .blocked{background:#f0ece9}
+  .msg{padding:12px;border-radius:12px;margin-top:10px;font-size:17px}
+  .err{background:#fde2e2;color:#7a1414}
+  .ok{background:#e0f2e6;color:#14502a}
+  .hidden{display:none}
+  h2{font-size:20px;margin:18px 0 8px}
+</style>
+</head>
+<body>
+<header><h1>Salon Rina – Diary</h1></header>
+<main>
+
+  <div class="card" id="loginBox">
+    <label for="pin">Enter your diary PIN</label>
+    <input id="pin" type="password" inputmode="numeric" autocomplete="current-password">
+    <div class="row"><button id="login">Open diary</button></div>
+    <div id="loginMsg"></div>
+  </div>
+
+  <div id="app" class="hidden">
+    <div class="card">
+      <label for="day">Day</label>
+      <input type="date" id="day">
+    </div>
+
+    <div class="card">
+      <h2>Add a walk-in or block time</h2>
+      <label for="ftime">Time</label>
+      <select id="ftime"></select>
+      <label for="fservice">Service (or reason for blocking)</label>
+      <input id="fservice" placeholder="e.g. Wash and blow-dry">
+      <label for="fname">Client name (leave empty when blocking)</label>
+      <input id="fname" placeholder="e.g. Mrs Dlamini">
+      <div class="row">
+        <button id="addWalk">Add walk-in</button>
+        <button class="grey" id="addBlock">Block this time</button>
+      </div>
+      <div id="addMsg"></div>
+    </div>
+
+    <h2 id="listTitle">Bookings</h2>
+    <div id="list"></div>
+  </div>
+
+</main>
+
+<script>
+/* ===== SALON SETTINGS ===== */
+const SUPABASE_URL = "https://mkgsjpigeuxeupzvdxko.supabase.co";
+const SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1rZ3NqcGlnZXV4ZXVwenZkeGtvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTM2NzAwNzAsImV4cCI6MjEwOTI0NjA3MH0.EZbmD-GnZuz_q2lnmg2Nj7dGD36jh7CEIyulhmW03WQ";
+const SALON = "rina";
+const TIMES = ["08:00","09:00","10:00","11:00","12:00","13:00","14:00","15:00","16:00"];
+/* ========================== */
+
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+const $ = id => document.getElementById(id);
+let PIN = "";
+
+TIMES.forEach(t => { const o = document.createElement("option"); o.value = t; o.textContent = t; $("ftime").appendChild(o); });
+$("day").value = new Date().toISOString().slice(0,10);
+
+function msg(el, text, kind){ el.innerHTML = ""; const d = document.createElement("div"); d.className = "msg " + kind; d.textContent = text; el.appendChild(d); }
+
+async function openDiary(){
+  const pin = $("pin").value.trim();
+  if(!pin){ msg($("loginMsg"), "Enter your PIN.", "err"); return; }
+  PIN = pin;
+  const ok = await loadDay(true);
+  if(ok){ $("loginBox").classList.add("hidden"); $("app").classList.remove("hidden"); }
+}
+
+async function loadDay(checking){
+  const { data, error } = await sb.rpc("owner_day", { p_salon: SALON, p_pin: PIN, p_date: $("day").value });
+  if(error){
+    msg($("loginMsg"), error.message.includes("WRONG_PIN") ? "That PIN is not right." : "Could not load. Check your connection.", "err");
+    return false;
+  }
+  $("listTitle").textContent = "Bookings for " + $("day").value;
+  const list = $("list");
+  list.innerHTML = "";
+  if(!data || data.length === 0){ list.innerHTML = '<div class="card">Nothing booked for this day.</div>'; }
+  (data || []).forEach(b => {
+    const card = document.createElement("div");
+    card.className = "card " + (b.status === "cancelled" ? "cancelled" : "") + (b.status === "blocked" ? " blocked" : "");
+    const time = b.booking_time.slice(0,5);
+    const isBlock = b.status === "blocked";
+    card.innerHTML = `
+      <div class="b-name">${time} – ${escapeHtml(isBlock ? "BLOCKED" : (b.client_name || "Client"))}</div>
+      <div class="b-meta">${escapeHtml(b.service || "")}${b.client_phone ? " · " + escapeHtml(b.client_phone) : ""}</div>
+      <span class="b-status">${b.status}</span>
+      <div class="row"></div>`;
+    const row = card.querySelector(".row");
+    if(!isBlock && b.status !== "cancelled"){
+      row.appendChild(actionBtn("Done", "done", b.id));
+      row.appendChild(actionBtn("Cancel", "cancelled", b.id, "ghost"));
+    }
+    if(b.status === "cancelled" || isBlock){
+      row.appendChild(actionBtn("Remove", "cancelled", b.id, "ghost"));
+    }
+    list.appendChild(card);
+  });
+  if(checking) return true;
+  return true;
+}
+
+function actionBtn(label, status, id, cls){
+  const b = document.createElement("button");
+  b.textContent = label;
+  if(cls) b.className = cls;
+  b.onclick = async () => {
+    const { error } = await sb.rpc("owner_set_status", { p_salon: SALON, p_pin: PIN, p_id: id, p_status: status });
+    if(error) alert("Could not update. Try again.");
+    loadDay();
+  };
+  return b;
+}
+
+async function add(status){
+  const time = $("ftime").value;
+  const service = $("fservice").value.trim();
+  const name = status === "blocked" ? "" : $("fname").value.trim();
+  if(status === "booked" && !name){ msg($("addMsg"), "Please type the client's name.", "err"); return; }
+  const { error } = await sb.rpc("owner_add", {
+    p_salon: SALON, p_pin: PIN, p_date: $("day").value, p_time: time,
+    p_service: service || (status === "blocked" ? "Blocked" : "Walk-in"), p_name: name, p_status: status
+  });
+  if(error){
+    msg($("addMsg"), error.message.includes("SLOT_TAKEN") ? "That time is already taken." : "Could not save. Try again.", "err");
+    return;
+  }
+  msg($("addMsg"), status === "blocked" ? "Time blocked." : "Walk-in added.", "ok");
+  $("fname").value = ""; $("fservice").value = "";
+  loadDay();
+}
+
+function escapeHtml(s){ return String(s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c])); }
+
+$("login").onclick = openDiary;
+$("pin").addEventListener("keydown", e => { if(e.key === "Enter") openDiary(); });
+$("day").onchange = () => loadDay();
+$("addWalk").onclick = () => add("booked");
+$("addBlock").onclick = () => add("blocked");
+</script>
+</body>
+</html>
