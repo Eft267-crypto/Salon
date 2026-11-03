@@ -152,7 +152,6 @@ function drawServices(){
 }
 
 async function loadTimes(){
-  time = null;
   const date = $("date").value;
   $("times").innerHTML = "";
   if(!date){ check(); return; }
@@ -177,7 +176,7 @@ function check(){
 }
 
 $("date").min = new Date().toISOString().slice(0,10);
-$("date").onchange = loadTimes;
+$("date").onchange = () => { time = null; loadTimes(); };
 $("en").onclick = () => setLang("en");
 $("af").onclick = () => setLang("af");
 
