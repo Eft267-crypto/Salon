@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#06281a">
+<title>SA Lotto Picker</title>
+<style>
+:root{--gold:#f5c542;--gold2:#ffe9a3;--felt:#0b4d2c;--felt2:#04210f;--red:#d7263d;--ink:#fff8e1}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;min-height:100%;color:var(--ink);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+body{
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160' viewBox='0 0 160 160'%3E%3Cg fill='%23f5c542' fill-opacity='.07' font-family='serif' font-size='30'%3E%3Ctext x='10' y='40'%3E%E2%99%A0%3C/text%3E%3Ctext x='95' y='60'%3E%E2%99%A5%3C/text%3E%3Ctext x='40' y='125'%3E%E2%99%A6%3C/text%3E%3Ctext x='115' y='145'%3E%E2%99%A3%3C/text%3E%3C/g%3E%3Cg fill='none' stroke='%23f5c542' stroke-opacity='.08' stroke-width='3'%3E%3Ccircle cx='70' cy='85' r='14'/%3E%3Ccircle cx='70' cy='85' r='8' stroke-dasharray='4 4'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(ellipse at 50% 0%,#14804a 0%,var(--felt) 40%,var(--felt2) 100%);
+  background-attachment:fixed;overflow-x:hidden}
+.bg{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.bg .fb{position:absolute;border-radius:50%;opacity:.22;filter:blur(.3px);animation:float 14s ease-in-out infinite;
+  display:flex;align-items:center;justify-content:center;font-weight:900;color:#222;font-size:14px}
+.bg .fb::after{content:"";position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 30% 28%,rgba(255,255,255,.85),transparent 40%)}
+@keyframes float{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-40px) rotate(25deg)}}
+.lights{position:fixed;left:0;right:0;top:0;height:10px;z-index:1;background:repeating-linear-gradient(90deg,var(--gold) 0 8px,transparent 8px 22px);opacity:.8;animation:blink 1.2s steps(2) infinite}
+@keyframes blink{50%{background-position:11px 0}}
+.wrap{position:relative;z-index:2;max-width:520px;margin:0 auto;padding:30px 16px 40px}
+header{text-align:center;margin-bottom:22px}
+.logo{font-family:Georgia,"Times New Roman",serif;font-size:40px;font-weight:900;letter-spacing:1px;line-height:1;
+  background:linear-gradient(180deg,var(--gold2),var(--gold) 50%,#b8860b);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 10px rgba(245,197,66,.55)) drop-shadow(0 3px 0 #3a2a00)}
+.tag{margin-top:6px;font-size:13px;letter-spacing:3px;text-transform:uppercase;color:var(--gold2);opacity:.85}
+.dice{font-size:26px;margin-bottom:4px}
+.btn{display:block;width:100%;border:0;border-radius:18px;padding:18px;font-size:20px;font-weight:800;cursor:pointer;letter-spacing:.5px;transition:transform .08s}
+.btn:active{transform:scale(.97)}
+.btn-game{background:rgba(0,0,0,.45);color:var(--gold2);border:2px solid var(--gold);box-shadow:0 0 18px rgba(245,197,66,.25) inset;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+.btn-game small{display:block;font-size:12px;font-weight:600;opacity:.75;text-align:left}
+.btn-gen{background:linear-gradient(180deg,#ff4d5e,var(--red) 60%,#8f0f1f);color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.35);
+  box-shadow:0 6px 0 #5c0812,0 10px 30px rgba(215,38,61,.5);border:2px solid #ffb3bb}
+.btn-gen:active{box-shadow:0 2px 0 #5c0812}
+.sheet{display:none;background:rgba(0,0,0,.6);border:1px solid rgba(245,197,66,.5);border-radius:16px;margin:-6px 0 14px;overflow:hidden}
+.sheet.open{display:block}
+.sheet button{display:flex;justify-content:space-between;width:100%;background:none;border:0;border-bottom:1px solid rgba(255,255,255,.08);color:var(--ink);padding:15px 18px;font-size:17px;text-align:left}
+.sheet button:last-child{border-bottom:0}
+.sheet button.on{color:var(--gold);font-weight:800}
+.sheet span{opacity:.6;font-size:13px}
+#lines{margin-top:22px}
+.line{display:flex;align-items:center;gap:6px;background:rgba(0,0,0,.4);border:1px solid rgba(245,197,66,.25);border-radius:40px;padding:8px 10px;margin-bottom:10px;animation:pop .35s ease both}
+@keyframes pop{from{opacity:0;transform:translateY(10px) scale(.96)}to{opacity:1;transform:none}}
+.ln{width:22px;font-size:13px;font-weight:800;color:var(--gold);text-align:center;flex:none}
+.balls{display:flex;gap:5px;flex-wrap:nowrap}
+.ball{width:40px;height:40px;flex:none;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:900;font-size:16px;color:#1a1a1a;
+  background:radial-gradient(circle at 32% 28%,#fff 0 12%,var(--c) 45%,color-mix(in srgb,var(--c) 60%,#000) 100%);box-shadow:0 3px 6px rgba(0,0,0,.5)}
+.ball.pb{--c:#e0102a;color:#fff;margin-left:6px;outline:2px solid var(--gold);outline-offset:1px}
+.ball.hot{box-shadow:0 0 0 2px #fff,0 0 10px 2px var(--gold)}
+.empty{text-align:center;padding:26px 10px;color:var(--gold2);opacity:.75;font-size:15px;border:2px dashed rgba(245,197,66,.3);border-radius:18px}
+.legend{font-size:12px;opacity:.75;text-align:center;margin:4px 0 0}
+.actions{display:flex;gap:10px;margin-top:8px}
+.actions button{flex:1;background:rgba(0,0,0,.4);color:var(--gold2);border:1px solid rgba(245,197,66,.4);border-radius:12px;padding:11px;font-size:14px;font-weight:700}
+details{margin-top:22px;background:rgba(0,0,0,.4);border:1px solid rgba(245,197,66,.25);border-radius:16px;padding:4px 14px}
+summary{cursor:pointer;padding:12px 0;font-weight:800;color:var(--gold)}
+details p,details li{font-size:14px;line-height:1.5}
+details ul{padding-left:18px;margin:6px 0}
+.chips{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0}
+.chip{background:rgba(245,197,66,.15);border:1px solid rgba(245,197,66,.4);border-radius:10px;padding:1px 7px;font-size:13px}
+.chip.cold{background:rgba(120,180,255,.12);border-color:rgba(120,180,255,.4)}
+.testbtn{width:100%;margin:8px 0 12px;background:var(--gold);color:#2a1c00;border:0;border-radius:12px;padding:12px;font-weight:800;font-size:15px}
+#testout{font-size:14px;line-height:1.5}
+table{width:100%;border-collapse:collapse;font-size:14px}
+td,th{padding:6px 4px;border-bottom:1px solid rgba(255,255,255,.1);text-align:left}
+footer{margin-top:24px;text-align:center;font-size:12px;opacity:.7;line-height:1.5}
+.toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#000;color:var(--gold2);padding:10px 16px;border-radius:20px;font-size:14px;opacity:0;transition:opacity .3s;z-index:9}
+.toast.show{opacity:.92}
+@media (max-width:380px){.ball{width:34px;height:34px;font-size:14px}.logo{font-size:34px}}
+</style>
+</head>
+<body>
+<div class="lights"></div>
+<div class="bg" id="bg"></div>
+<div class="wrap">
+  <header>
+    <div class="dice">🎰 💰 🎲</div>
+    <div class="logo">SA LOTTO PICKER</div>
+    <div class="tag">Lotto · Daily Lotto · PowerBall</div>
+  </header>
+
+  <button class="btn btn-game" id="gameBtn" aria-expanded="false">
+    <div><small>STEP 1 · CHOOSE GAME</small><span id="gameName">PowerBall</span></div><span>▾</span>
+  </button>
+  <div class="sheet" id="sheet">
+    <button data-g="lotto">Lotto <span>6 from 1–52</span></button>
+    <button data-g="daily">Daily Lotto <span>5 from 1–36</span></button>
+    <button data-g="pb">PowerBall <span>5 from 1–50 + PB 1–16</span></button>
+  </div>
+
+  <button class="btn btn-gen" id="genBtn">🎲 GENERATE MY 5 LINES</button>
+
+  <div id="lines"><div class="empty">Choose your game, then tap <b>Generate</b> to get 5 lines.</div></div>
+  <div id="after" style="display:none">
+    <p class="legend">Glowing balls = hot numbers from recent draws</p>
+    <div class="actions"><button id="copyBtn">📋 Copy lines</button><button id="againBtn">🔄 New set</button></div>
+  </div>
+
+  <details id="pat">
+    <summary>📊 The pattern used</summary>
+    <div id="patBody"></div>
+  </details>
+
+  <details>
+    <summary>🧪 Test it: pattern vs random</summary>
+    <p>Goes back through past draws and pretends you played 5 pattern lines and 5 random lines each time. Counts how often a line hit 3+ and 4+ numbers.</p>
+    <button class="testbtn" id="testBtn">Run test</button>
+    <div id="testout"></div>
+  </details>
+
+  <footer>
+    No app can predict or guarantee lottery numbers. Every draw is random.<br>
+    18+ only. Play for fun, with money you can afford to lose.<br>
+    Responsible gambling helpline: 0800 006 008
+  </footer>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const RAW = {"pb_main":[{"d":"2026-10-30","n":[7,9,21,27,30],"b":8},{"d":"2026-10-27","n":[3,4,5,38,48],"b":3},{"d":"2026-10-23","n":[2,4,6,40,45],"b":5},{"d":"2026-10-20","n":[1,18,21,41,47],"b":5},{"d":"2026-10-16","n":[15,33,38,42,49],"b":4},{"d":"2026-10-13","n":[3,15,24,30,31],"b":7},{"d":"2026-10-09","n":[3,14,17,19,37],"b":16},{"d":"2026-10-06","n":[12,18,21,35,46],"b":10},{"d":"2026-10-02","n":[15,26,27,28,39],"b":10},{"d":"2026-09-29","n":[17,19,24,43,44],"b":6},{"d":"2026-09-25","n":[5,9,22,34,38],"b":3},{"d":"2026-09-22","n":[2,28,31,38,50],"b":11},{"d":"2026-09-18","n":[2,4,6,8,43],"b":15},{"d":"2026-09-15","n":[7,23,25,27,50],"b":7},{"d":"2026-09-11","n":[9,11,13,38,43],"b":13},{"d":"2026-09-08","n":[4,8,13,37,49],"b":7},{"d":"2026-09-04","n":[4,7,27,38,50],"b":10},{"d":"2026-09-01","n":[14,16,31,34,40],"b":4},{"d":"2026-08-28","n":[19,22,24,25,47],"b":11},{"d":"2026-08-25","n":[5,34,39,43,45],"b":1},{"d":"2026-08-21","n":[2,4,5,24,49],"b":4},{"d":"2026-08-18","n":[3,7,20,31,39],"b":13},{"d":"2026-08-14","n":[14,15,19,39,44],"b":3},{"d":"2026-08-11","n":[3,14,26,40,48],"b":10},{"d":"2026-08-07","n":[8,22,31,39,40],"b":5},{"d":"2026-08-04","n":[16,24,29,34,38],"b":15},{"d":"2026-07-31","n":[10,11,37,45,46],"b":11},{"d":"2026-07-28","n":[3,12,27,36,47],"b":15},{"d":"2026-07-24","n":[4,8,13,22,38],"b":1},{"d":"2026-07-21","n":[15,40,41,47,50],"b":16},{"d":"2026-07-17","n":[6,9,31,37,42],"b":4},{"d":"2026-07-14","n":[9,13,21,36,40],"b":4},{"d":"2026-07-10","n":[2,12,13,20,23],"b":12},{"d":"2026-07-07","n":[16,18,21,29,47],"b":11},{"d":"2026-07-03","n":[9,14,27,32,34],"b":15},{"d":"2026-06-30","n":[21,26,40,42,44],"b":15},{"d":"2026-06-26","n":[17,26,37,40,45],"b":13},{"d":"2026-06-23","n":[16,25,32,33,50],"b":11},{"d":"2026-06-19","n":[9,10,27,37,44],"b":13},{"d":"2026-06-16","n":[2,19,20,40,43],"b":11},{"d":"2026-06-12","n":[7,23,27,30,45],"b":6},{"d":"2026-06-09","n":[5,8,12,19,48],"b":1},{"d":"2026-06-05","n":[2,16,33,37,43],"b":6},{"d":"2026-06-02","n":[2,10,22,28,49],"b":7},{"d":"2026-05-29","n":[9,14,16,25,30],"b":14},{"d":"2026-05-26","n":[1,9,30,31,47],"b":3},{"d":"2026-05-22","n":[6,8,16,22,25],"b":18},{"d":"2026-05-19","n":[19,24,29,47,48],"b":4},{"d":"2026-05-15","n":[20,24,29,38,39],"b":11},{"d":"2026-05-12","n":[25,30,32,33,46],"b":6},{"d":"2026-05-08","n":[1,32,40,43,48],"b":9},{"d":"2026-05-05","n":[1,4,5,22,28],"b":5},{"d":"2026-05-01","n":[15,17,27,29,35],"b":12},{"d":"2026-04-28","n":[5,17,38,44,47],"b":2},{"d":"2026-04-24","n":[16,19,24,25,41],"b":20},{"d":"2026-04-21","n":[5,13,31,32,47],"b":3},{"d":"2026-04-17","n":[17,26,39,43,45],"b":2},{"d":"2026-04-14","n":[2,6,16,30,31],"b":6},{"d":"2026-04-10","n":[27,36,38,40,48],"b":17},{"d":"2026-04-07","n":[16,17,18,22,41],"b":10},{"d":"2026-04-03","n":[1,14,25,29,41],"b":18},{"d":"2026-03-31","n":[5,13,15,24,43],"b":6},{"d":"2026-03-27","n":[6,12,25,28,36],"b":15},{"d":"2026-03-24","n":[11,13,19,22,39],"b":1},{"d":"2026-03-20","n":[5,8,11,17,41],"b":2},{"d":"2026-03-17","n":[10,13,40,47,48],"b":5},{"d":"2026-03-13","n":[1,3,27,45,50],"b":17},{"d":"2026-03-10","n":[1,5,13,20,25],"b":14},{"d":"2026-03-06","n":[10,11,15,18,50],"b":11},{"d":"2026-03-03","n":[1,9,29,38,43],"b":15},{"d":"2026-02-27","n":[11,14,24,32,43],"b":2},{"d":"2026-02-24","n":[19,23,33,34,41],"b":9},{"d":"2026-02-20","n":[17,19,25,28,35],"b":17},{"d":"2026-02-17","n":[5,15,23,24,42],"b":5},{"d":"2026-02-13","n":[4,10,23,26,37],"b":20},{"d":"2026-02-10","n":[17,23,25,39,49],"b":11},{"d":"2026-02-06","n":[6,13,21,28,31],"b":5},{"d":"2026-02-03","n":[2,11,20,40,49],"b":2},{"d":"2026-01-30","n":[19,26,31,33,39],"b":2},{"d":"2026-01-27","n":[11,13,28,43,48],"b":3},{"d":"2026-01-23","n":[4,16,24,29,31],"b":15},{"d":"2026-01-20","n":[2,3,16,17,35],"b":5},{"d":"2026-01-16","n":[8,22,36,39,47],"b":20},{"d":"2026-01-13","n":[21,32,33,39,50],"b":3},{"d":"2026-01-09","n":[11,20,35,42,50],"b":7},{"d":"2026-01-06","n":[9,12,13,30,34],"b":2},{"d":"2026-01-02","n":[17,18,35,38,39],"b":9}],"pb_extra":[{"d":"2026-10-30","n":[6,24,29,36,37],"b":2},{"d":"2026-10-27","n":[5,15,32,33,34],"b":13},{"d":"2026-10-23","n":[14,19,21,31,50],"b":6},{"d":"2026-10-20","n":[3,8,18,37,39],"b":13},{"d":"2026-10-16","n":[13,33,34,35,47],"b":11},{"d":"2026-10-13","n":[19,39,40,41,48],"b":2},{"d":"2026-10-09","n":[2,38,40,44,46],"b":15},{"d":"2026-10-06","n":[2,9,23,25,36],"b":11},{"d":"2026-10-02","n":[33,36,40,41,42],"b":4},{"d":"2026-09-29","n":[17,18,22,34,50],"b":2},{"d":"2026-09-25","n":[6,9,15,24,34],"b":4},{"d":"2026-09-22","n":[5,14,33,43,49],"b":12},{"d":"2026-09-18","n":[4,13,21,32,48],"b":1},{"d":"2026-09-15","n":[5,16,24,36,49],"b":16},{"d":"2026-09-11","n":[19,24,25,42,48],"b":16},{"d":"2026-09-08","n":[14,18,33,49,50],"b":2},{"d":"2026-09-04","n":[31,37,39,41,49],"b":15},{"d":"2026-09-01","n":[4,18,31,34,40],"b":10},{"d":"2026-08-28","n":[3,4,16,35,38],"b":15},{"d":"2026-08-25","n":[4,7,15,18,29],"b":16},{"d":"2026-08-21","n":[17,23,37,39,48],"b":2},{"d":"2026-08-18","n":[7,11,18,26,31],"b":12},{"d":"2026-08-14","n":[7,27,28,46,48],"b":2},{"d":"2026-08-11","n":[15,21,31,42,50],"b":2},{"d":"2026-08-07","n":[10,11,21,46,47],"b":6},{"d":"2026-08-04","n":[5,20,21,36,44],"b":13},{"d":"2026-07-31","n":[1,17,19,22,36],"b":5},{"d":"2026-07-28","n":[23,26,29,44,49],"b":5},{"d":"2026-07-24","n":[14,16,22,37,42],"b":10},{"d":"2026-07-21","n":[12,16,32,33,39],"b":16},{"d":"2026-07-17","n":[18,21,40,41,43],"b":16},{"d":"2026-07-14","n":[10,23,34,35,37],"b":2},{"d":"2026-07-10","n":[3,8,10,28,48],"b":12},{"d":"2026-07-07","n":[16,29,32,45,47],"b":2},{"d":"2026-07-03","n":[5,21,39,46,47],"b":12},{"d":"2026-06-30","n":[8,14,16,25,44],"b":15},{"d":"2026-06-26","n":[16,20,31,33,47],"b":8},{"d":"2026-06-23","n":[3,25,27,39,40],"b":4},{"d":"2026-06-19","n":[7,23,26,38,46],"b":15},{"d":"2026-06-16","n":[5,12,17,20,43],"b":1},{"d":"2026-06-12","n":[3,9,32,42,46],"b":1},{"d":"2026-06-09","n":[19,32,40,45,48],"b":11},{"d":"2026-06-05","n":[2,23,44,48,50],"b":14},{"d":"2026-06-02","n":[4,12,27,35,41],"b":15},{"d":"2026-05-29","n":[14,17,22,27,36],"b":20},{"d":"2026-05-26","n":[13,27,29,36,37],"b":10},{"d":"2026-05-22","n":[10,11,15,22,48],"b":5},{"d":"2026-05-19","n":[5,21,23,41,43],"b":11},{"d":"2026-05-15","n":[17,21,25,35,37],"b":11},{"d":"2026-05-12","n":[19,20,29,35,44],"b":6},{"d":"2026-05-08","n":[13,17,28,41,47],"b":19},{"d":"2026-05-05","n":[19,37,39,40,45],"b":3},{"d":"2026-05-01","n":[7,8,33,38,45],"b":13},{"d":"2026-04-28","n":[6,10,13,24,26],"b":2},{"d":"2026-04-24","n":[1,18,32,35,47],"b":6},{"d":"2026-04-21","n":[1,7,16,31,36],"b":7},{"d":"2026-04-17","n":[8,36,43,44,48],"b":3},{"d":"2026-04-14","n":[4,17,20,23,50],"b":1},{"d":"2026-04-10","n":[8,10,14,23,36],"b":13},{"d":"2026-04-07","n":[22,29,30,43,46],"b":9},{"d":"2026-04-03","n":[16,20,21,24,25],"b":6},{"d":"2026-03-31","n":[4,5,10,16,42],"b":12},{"d":"2026-03-27","n":[1,7,11,27,32],"b":1},{"d":"2026-03-24","n":[7,15,19,31,44],"b":20},{"d":"2026-03-20","n":[12,18,28,40,45],"b":15},{"d":"2026-03-17","n":[7,9,10,31,34],"b":4},{"d":"2026-03-13","n":[9,14,23,34,36],"b":20},{"d":"2026-03-10","n":[2,23,27,32,49],"b":11},{"d":"2026-03-06","n":[15,21,25,44,49],"b":1},{"d":"2026-03-03","n":[4,21,29,45,48],"b":6},{"d":"2026-02-27","n":[27,31,36,37,43],"b":4},{"d":"2026-02-24","n":[9,14,39,41,48],"b":10},{"d":"2026-02-20","n":[7,8,23,36,41],"b":17},{"d":"2026-02-17","n":[23,24,30,41,43],"b":5},{"d":"2026-02-13","n":[6,20,24,30,34],"b":11},{"d":"2026-02-10","n":[4,20,37,41,42],"b":11},{"d":"2026-02-06","n":[2,6,35,36,46],"b":2},{"d":"2026-02-03","n":[1,10,26,27,40],"b":5},{"d":"2026-01-30","n":[2,9,14,35,42],"b":9},{"d":"2026-01-27","n":[14,23,31,44,49],"b":9},{"d":"2026-01-23","n":[3,16,18,23,42],"b":20},{"d":"2026-01-20","n":[1,5,7,15,40],"b":4},{"d":"2026-01-16","n":[3,24,29,32,34],"b":18},{"d":"2026-01-13","n":[1,2,11,15,42],"b":13},{"d":"2026-01-09","n":[13,14,27,38,42],"b":12},{"d":"2026-01-06","n":[8,17,24,29,41],"b":8},{"d":"2026-01-02","n":[2,22,29,36,43],"b":3}],"lotto":[{"d":"2026-10-14","n":[11,12,30,42,47,48],"b":null},{"d":"2026-10-07","n":[9,10,16,23,29,33],"b":null},{"d":"2026-10-03","n":[7,18,25,36,40,44],"b":null},{"d":"2026-09-23","n":[6,8,14,22,38,43],"b":null},{"d":"2026-09-02","n":[9,15,21,24,30,39],"b":null},{"d":"2026-08-29","n":[3,20,30,35,39,50],"b":null},{"d":"2026-08-19","n":[10,19,21,40,50,51],"b":null},{"d":"2026-08-12","n":[6,11,27,28,34,45],"b":null},{"d":"2026-08-01","n":[9,11,12,24,39,41],"b":null},{"d":"2026-07-29","n":[4,15,22,24,41,52],"b":null},{"d":"2026-07-22","n":[2,4,28,32,34,35],"b":null},{"d":"2026-07-15","n":[23,39,47,48,49,51],"b":null},{"d":"2026-07-11","n":[8,14,20,33,34,47],"b":null},{"d":"2026-07-08","n":[11,13,21,22,29,36],"b":null},{"d":"2026-07-01","n":[5,10,20,23,43,52],"b":null},{"d":"2026-06-27","n":[2,10,21,37,42,43],"b":null},{"d":"2026-06-24","n":[12,23,42,46,48,51],"b":null},{"d":"2026-06-20","n":[1,19,20,22,47,50],"b":null},{"d":"2026-06-17","n":[8,34,36,42,51,52],"b":null},{"d":"2026-06-10","n":[15,16,17,18,25,33],"b":null},{"d":"2026-06-06","n":[8,16,20,40,50,51],"b":null},{"d":"2026-06-03","n":[5,8,19,30,44,46],"b":null}],"lotto_plus":[{"d":"2026-10-14","n":[1,2,22,25,27,50],"b":null},{"d":"2026-10-07","n":[15,19,24,42,46,51],"b":null},{"d":"2026-10-03","n":[4,19,20,23,44,48],"b":null},{"d":"2026-09-23","n":[15,26,35,38,47,51],"b":null},{"d":"2026-09-02","n":[5,10,12,22,28,42],"b":null},{"d":"2026-08-29","n":[2,4,11,21,29,35],"b":null},{"d":"2026-08-01","n":[7,10,27,29,47,51],"b":null},{"d":"2026-07-22","n":[11,14,19,21,33,39],"b":null},{"d":"2026-07-11","n":[3,22,25,38,40,46],"b":null},{"d":"2026-07-01","n":[3,4,5,6,19,33],"b":null},{"d":"2026-06-20","n":[7,23,32,37,43,45],"b":null},{"d":"2026-06-17","n":[1,12,19,26,27,28],"b":null},{"d":"2026-06-10","n":[19,20,32,37,45,51],"b":null},{"d":"2026-06-06","n":[11,12,35,44,45,46],"b":null},{"d":"2026-06-03","n":[2,28,45,49,51,52],"b":null}],"lotto_old":[{"d":"2026-05-20","n":[1,4,12,13,24,58],"b":null},{"d":"2026-03-28","n":[6,12,26,40,41,55],"b":null},{"d":"2026-03-18","n":[4,24,26,45,46,49],"b":null},{"d":"2026-02-21","n":[2,8,39,43,45,55],"b":null},{"d":"2025-12-31","n":[4,5,10,16,22,45],"b":null},{"d":"2025-12-27","n":[8,11,24,32,43,45],"b":null},{"d":"2025-12-24","n":[7,12,20,39,43,56],"b":null},{"d":"2025-12-20","n":[5,40,47,49,53,54],"b":null},{"d":"2025-12-17","n":[1,6,12,26,40,54],"b":null},{"d":"2025-12-13","n":[9,18,30,53,54,58],"b":null},{"d":"2025-12-10","n":[10,13,14,22,32,48],"b":null},{"d":"2025-12-06","n":[4,6,13,15,29,35],"b":null},{"d":"2025-12-03","n":[1,8,29,32,42,53],"b":null},{"d":"2025-11-29","n":[8,18,22,46,54,58],"b":null},{"d":"2025-11-26","n":[4,8,25,32,33,36],"b":null},{"d":"2025-11-22","n":[4,5,6,15,39,50],"b":null},{"d":"2025-11-19","n":[14,19,21,26,56,58],"b":null},{"d":"2025-11-15","n":[13,31,33,43,46,53],"b":null},{"d":"2025-11-12","n":[9,16,20,39,44,56],"b":null},{"d":"2025-11-08","n":[9,10,19,38,52,55],"b":null},{"d":"2025-11-05","n":[9,13,33,51,55,58],"b":null},{"d":"2025-11-01","n":[1,12,21,24,49,56],"b":null},{"d":"2025-10-29","n":[2,10,22,43,45,53],"b":null}],"daily":[{"d":"2026-10-18","n":[9,12,16,26,36],"b":null},{"d":"2026-10-06","n":[6,10,14,15,18],"b":null},{"d":"2026-10-05","n":[1,5,7,25,27],"b":null},{"d":"2026-10-04","n":[5,13,16,20,23],"b":null},{"d":"2026-10-03","n":[6,15,22,31,36],"b":null},{"d":"2026-10-02","n":[6,16,21,27,32],"b":null},{"d":"2026-10-01","n":[2,15,21,30,34],"b":null},{"d":"2026-05-05","n":[6,21,30,33,35],"b":null},{"d":"2026-02-11","n":[5,18,19,33,35],"b":null}],"pbfreq":{"1":177,"2":173,"3":193,"4":183,"5":185,"6":177,"7":182,"8":189,"9":195,"10":186,"11":187,"12":195,"13":203,"14":171,"15":216,"16":190,"17":179,"18":191,"19":189,"20":203,"21":190,"22":195,"23":178,"24":208,"25":171,"26":176,"27":164,"28":190,"29":182,"30":173,"31":204,"32":180,"33":163,"34":183,"35":194,"36":187,"37":188,"38":189,"39":172,"40":196,"41":186,"42":189,"43":200,"44":180,"45":176,"46":88,"47":85,"48":91,"49":100,"50":88},"dfreq":{"1":395,"2":397,"3":369,"4":395,"5":394,"6":416,"7":385,"8":387,"9":405,"10":434,"11":377,"12":394,"13":376,"14":407,"15":388,"16":384,"17":358,"18":362,"19":352,"20":381,"21":391,"22":384,"23":389,"24":370,"25":423,"26":373,"27":399,"28":391,"29":375,"30":379,"31":386,"32":383,"33":381,"34":375,"35":380,"36":390},"lfreq":{"1":6,"2":8,"3":6,"4":8,"5":7,"6":6,"7":6,"8":8,"9":6,"10":9,"11":10,"12":9,"13":4,"14":6,"15":8,"16":6,"17":4,"18":5,"19":12,"20":10,"21":9,"22":10,"23":9,"24":7,"25":7,"26":5,"27":7,"28":8,"29":7,"30":7,"31":3,"32":6,"33":8,"34":7,"35":8,"36":6,"37":6,"38":6,"39":8,"40":7,"41":5,"42":9,"43":7,"44":7,"45":8,"46":8,"47":9,"48":7,"49":5,"50":8,"51":13,"52":7}};
+
+const fmt = s => s;
+// ---------- game configs (pattern from recent draws) ----------
+const GAMES = {
+  pb: {
+    name:"PowerBall", max:50, pick:5, bonusMax:16,
+    recent: RAW.pb_main.slice(0,9), windowLabel:"last 9 draws (October 2026)",
+    past: [...RAW.pb_main, ...RAW.pb_extra],
+    freq: RAW.pbfreq,
+    rules:{odd:[3,4], low:[3], sumMin:90, sumMax:135, singleDigit:true},
+    bonus:{max:10, fav:[5,10]}
+  },
+  lotto: {
+    name:"Lotto", max:52, pick:6,
+    recent: RAW.lotto.slice(0,8), windowLabel:"last 8 Lotto draws available (Aug–Oct 2026)",
+    past: [...RAW.lotto, ...RAW.lotto_plus, ...RAW.lotto_old],
+    freq: RAW.lfreq,
+    rules:{odd:[2,3,4], low:[2,3,4], sumMin:120, sumMax:191, singleDigit:true}
+  },
+  daily: {
+    name:"Daily Lotto", max:36, pick:5,
+    recent: RAW.daily.slice(0,7), windowLabel:"last 7 draws available (October 2026)",
+    past: RAW.daily,
+    freq: RAW.dfreq,
+    rules:{odd:[1,2,3], low:[2,3], sumMin:63, sumMax:110, singleDigit:true}
+  }
+};
+for (const g of Object.values(GAMES)) {
+  const c = {}; g.recent.forEach(d=>d.n.forEach(x=>c[x]=(c[x]||0)+1));
+  g.hotCount = c;
+  g.hot = Object.keys(c).map(Number).filter(n=>c[n]>=2).sort((a,b)=>c[b]-c[a]||a-b);
+  g.cold = []; for (let i=1;i<=g.max;i++) if(!c[i]) g.cold.push(i);
+  g.pastSet = new Set(g.past.map(d=>d.n.join("-")));
+}
+
+// ---------- helpers ----------
+const rnd = n => Math.floor(Math.random()*n);
+function weightedPick(pool, w){ let t=0; for(const n of pool) t+=w(n); let r=Math.random()*t; for(const n of pool){ r-=w(n); if(r<=0) return n;} return pool[pool.length-1]; }
+function checkLine(g, line){
+  const r=g.rules, half=Math.floor(g.max/2);
+  const odd=line.filter(x=>x%2).length, low=line.filter(x=>x<=half).length, sum=line.reduce((a,b)=>a+b,0);
+  if(!r.odd.includes(odd)) return false;
+  if(!r.low.includes(low)) return false;
+  if(sum<r.sumMin||sum>r.sumMax) return false;
+  if(r.singleDigit && !line.some(x=>x<=9)) return false;
+  if(g.pastSet.has(line.join("-"))) return false;      // never a past winning line
+  return true;
+}
+const overlap=(a,b)=>a.filter(x=>b.includes(x)).length;
+
+function makeLine(g, i){
+  const s=new Set();
+  // 1) hot numbers (rotating so each line starts differently)
+  s.add(g.hot[i % g.hot.length]);
+  if (Math.random()<0.5) s.add(g.hot[rnd(g.hot.length)]);
+  // 2) a single-digit number
+  if (g.rules.singleDigit && ![...s].some(x=>x<=9)) s.add(1+rnd(9));
+  // 3) one cold ("due") number
+  s.add(g.cold[rnd(g.cold.length)]);
+  // 4) fill weighted by long-term frequency
+  const pool=[]; for(let n=1;n<=g.max;n++) pool.push(n);
+  while(s.size<g.pick){ s.add(weightedPick(pool.filter(n=>!s.has(n)), n=>g.freq[n]||1)); }
+  return [...s].sort((a,b)=>a-b);
+}
+
+function generate(g){
+  const lines=[]; let maxOv=2, tries=0;
+  while(lines.length<5){
+    tries++; if(tries>40000){ maxOv++; tries=0; }
+    const line=makeLine(g, lines.length);
+    if(line.length!==g.pick || !checkLine(g,line)) continue;
+    if(lines.some(l=>overlap(l.n,line)>maxOv)) continue;
+    lines.push({n:line});
+  }
+  if (g.bonus){
+    const used=new Set();
+    const pool=[]; for(let i=1;i<=g.bonus.max;i++) pool.push(i);
+    lines.forEach(l=>{
+      const avail=pool.filter(x=>!used.has(x));
+      const b=weightedPick(avail, x=>g.bonus.fav.includes(x)?3:1);
+      used.add(b); l.b=b;
+    });
+  }
+  return lines;
+}
+function randomLine(g){ const s=new Set(); while(s.size<g.pick) s.add(1+rnd(g.max)); return [...s]; }
+
+// ---------- UI ----------
+let cur = "pb", last=null;
+const $=id=>document.getElementById(id);
+const colors=["#ffd23f","#3bceac","#ff8fab","#7bdff2","#f9a03f","#c3f73a","#b8a1ff","#ffffff"];
+function ballHTML(n,cls=""){ const c=colors[n%colors.length]; return `<div class="ball ${cls}" style="--c:${c}">${n}</div>`; }
+
+function setGame(k){
+  cur=k; $("gameName").textContent=GAMES[k].name;
+  document.querySelectorAll(".sheet button").forEach(b=>b.classList.toggle("on",b.dataset.g===k));
+  $("sheet").classList.remove("open"); $("gameBtn").setAttribute("aria-expanded","false");
+  $("lines").innerHTML=`<div class="empty">${GAMES[k].name} selected. Tap <b>Generate</b>.</div>`; $("after").style.display="none";
+  renderPattern(); $("testout").innerHTML="";
+}
+function render(lines){
+  const g=GAMES[cur];
+  $("lines").innerHTML=lines.map((l,i)=>`<div class="line" style="animation-delay:${i*90}ms"><div class="ln">${i+1}</div><div class="balls">${
+    l.n.map(n=>ballHTML(n, g.hot.includes(n)?"hot":"")).join("")}${l.b?`<div class="ball pb">${l.b}</div>`:""}</div></div>`).join("");
+  $("after").style.display="block";
+}
+function renderPattern(){
+  const g=GAMES[cur], r=g.rules;
+  const chips=(a,c="")=>`<div class="chips">${a.map(n=>`<span class="chip ${c}">${n}${g.hotCount[n]?` <small>×${g.hotCount[n]}</small>`:""}</span>`).join("")}</div>`;
+  $("patBody").innerHTML=`
+    <p>Based on the <b>${g.windowLabel}</b>. Every line must pass all of these:</p>
+    <ul>
+      <li><b>Hot numbers</b> (1–2 per line):${chips(g.hot)}</li>
+      <li><b>Cold numbers</b> (1 per line):${chips(g.cold,"cold")}</li>
+      <li><b>Odd numbers:</b> ${r.odd.join(" or ")} per line</li>
+      <li><b>Low numbers (1–${Math.floor(g.max/2)}):</b> ${r.low.join(" or ")} per line</li>
+      <li><b>Total of the line:</b> ${r.sumMin}–${r.sumMax}</li>
+      <li><b>At least one single-digit number</b> (1–9)</li>
+      ${g.bonus?`<li><b>PowerBall:</b> 1–${g.bonus.max}, favouring ${g.bonus.fav.join(" and ")}, no repeats across lines</li>`:""}
+      <li><b>Never a past winning line</b> (checked against ${g.past.length} past draws)</li>
+      <li><b>Lines share no more than 2 numbers</b> with each other</li>
+    </ul>
+    <p style="opacity:.8">Recent draws used:</p>
+    <table>${g.recent.map(d=>`<tr><td>${d.d.slice(5)}</td><td>${d.n.join(", ")}${d.b?` <b style="color:#ff6b7d">+${d.b}</b>`:""}</td></tr>`).join("")}</table>`;
+}
+function runTest(){
+  const g=GAMES[cur], draws=g.past.filter(d=>d.n.every(x=>x<=g.max) && d.n.length===g.pick);
+  const R=Math.max(1,Math.ceil(600/draws.length));
+  const res={p3:0,p4:0,r3:0,r4:0,lines:0};
+  for(let rep=0;rep<R;rep++) for(const d of draws){
+    const pl=generate(g);
+    for(const l of pl){ const m=overlap(l.n,d.n); if(m>=3)res.p3++; if(m>=4)res.p4++; }
+    for(let i=0;i<5;i++){ const m=overlap(randomLine(g),d.n); if(m>=3)res.r3++; if(m>=4)res.r4++; }
+    res.lines+=5;
+  }
+  const pct=x=>(100*x/res.lines).toFixed(2)+"%";
+  $("testout").innerHTML=`<table>
+    <tr><th></th><th>Pattern</th><th>Random</th></tr>
+    <tr><td>Lines tested</td><td>${res.lines}</td><td>${res.lines}</td></tr>
+    <tr><td>3+ numbers</td><td>${res.p3} (${pct(res.p3)})</td><td>${res.r3} (${pct(res.r3)})</td></tr>
+    <tr><td>4+ numbers</td><td>${res.p4} (${pct(res.p4)})</td><td>${res.r4} (${pct(res.r4)})</td></tr></table>
+    <p style="opacity:.85">Tested on ${draws.length} past ${g.name} draws, ${R}× each. Note: the pattern was built from some of these same draws, which flatters it. Run it a few times — the two columns bounce around the same level.</p>`;
+}
+function toast(t){ const el=$("toast"); el.textContent=t; el.classList.add("show"); setTimeout(()=>el.classList.remove("show"),1600); }
+
+$("gameBtn").onclick=()=>{ const o=$("sheet").classList.toggle("open"); $("gameBtn").setAttribute("aria-expanded",o); };
+document.querySelectorAll(".sheet button").forEach(b=>b.onclick=()=>setGame(b.dataset.g));
+const go=()=>{ last=generate(GAMES[cur]); render(last); };
+$("genBtn").onclick=go; $("againBtn").onclick=go;
+$("testBtn").onclick=()=>{ $("testout").textContent="Testing…"; setTimeout(runTest,30); };
+$("copyBtn").onclick=()=>{
+  if(!last) return; const g=GAMES[cur];
+  const txt=g.name+"\n"+last.map((l,i)=>`Line ${i+1}: ${l.n.join(" ")}${l.b?"  PB "+l.b:""}`).join("\n");
+  (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(()=>toast("Copied!"),()=>{prompt("Copy your lines:",txt)});
+};
+// floating background balls
+(function(){ const bg=$("bg"); for(let i=0;i<14;i++){ const d=document.createElement("div"); const s=30+rnd(50);
+  d.className="fb"; d.style.cssText=`width:${s}px;height:${s}px;left:${rnd(100)}%;top:${rnd(100)}%;background:${i%5===0?"#e0102a":colors[i%colors.length]};animation-delay:-${rnd(14)}s;animation-duration:${10+rnd(10)}s`;
+  d.textContent=1+rnd(50); bg.appendChild(d);} })();
+setGame("pb");
+</script>
+</body>
+</html>
