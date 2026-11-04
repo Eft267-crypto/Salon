@@ -119,12 +119,25 @@ async function loadDay(checking){
       row.appendChild(actionBtn("Cancel", "cancelled", b.id, "ghost"));
     }
     if(b.status === "cancelled" || isBlock){
-      row.appendChild(actionBtn("Remove", "cancelled", b.id, "ghost"));
+      row.appendChild(removeBtn(b.id));
     }
     list.appendChild(card);
   });
   if(checking) return true;
   return true;
+}
+
+function removeBtn(id){
+  const b = document.createElement("button");
+  b.textContent = "Remove";
+  b.className = "ghost";
+  b.onclick = async () => {
+    if(!confirm("Remove this entry from the diary? This cannot be undone.")) return;
+    const { error } = await sb.rpc("owner_remove", { p_salon: SALON, p_pin: PIN, p_id: id });
+    if(error) alert("Could not remove. Try again.");
+    loadDay();
+  };
+  return b;
 }
 
 function actionBtn(label, status, id, cls){
